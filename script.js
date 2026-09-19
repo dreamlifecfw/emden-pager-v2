@@ -2,9 +2,14 @@ const warning = document.getElementById("warning");
 const agreeBtn = document.getElementById("agreeBtn");
 const timerEl = document.getElementById("timer");
 
+// إخفاء رموز الدخول من الشاشة
+document.querySelectorAll(".actions small").forEach((item) => {
+    item.textContent = "رمز الدخول: ••••";
+});
+
 let seconds = 5;
 
-// تحويل الحروف العربية إلى أرقام
+// ترميز الحروف العربية
 const alphabet = {
     "ا":"01","ب":"02","ت":"03","ث":"04","ج":"05","ح":"06","خ":"07",
     "د":"08","ذ":"09","ر":"10","ز":"11","س":"12","ش":"13","ص":"14",
@@ -13,12 +18,11 @@ const alphabet = {
     "ء":"29","ى":"30","ة":"31","ئ":"32","ؤ":"33"," ":"00"
 };
 
-// عكس الترميز: أرقام إلى حروف
 const reverseAlphabet = Object.fromEntries(
     Object.entries(alphabet).map(([letter, number]) => [number, letter])
 );
 
-// عداد رسالة التوعية
+// عداد الموافقة
 const countdown = setInterval(() => {
     seconds--;
 
@@ -39,19 +43,16 @@ const countdown = setInterval(() => {
 // زر موافق
 agreeBtn.addEventListener("click", () => {
     warning.classList.add("hidden");
-
     document.getElementById("app").classList.remove("hidden");
 });
 
 
-// عناصر النافذة
+// النافذة
 const modal = document.getElementById("modal");
 const modalTitle = document.getElementById("modalTitle");
-
 const codeStep = document.getElementById("codeStep");
 const sendStep = document.getElementById("sendStep");
 const decodeStep = document.getElementById("decodeStep");
-
 const codeDisplay = document.getElementById("codeDisplay");
 
 let enteredCode = "";
@@ -59,9 +60,8 @@ let mode = "";
 let cooldownRunning = false;
 
 
-// فتح نافذة الإرسال أو فك الشفرة
+// فتح النافذة
 function openModal(type) {
-
     mode = type;
     enteredCode = "";
 
@@ -71,35 +71,30 @@ function openModal(type) {
     sendStep.classList.add("hidden");
     decodeStep.classList.add("hidden");
 
-    if (type === "send") {
-        modalTitle.textContent = "إرسال رسالة";
-    } else {
-        modalTitle.textContent = "فك الشفرة";
-    }
+    modalTitle.textContent =
+        type === "send" ? "إرسال رسالة" : "فك الشفرة";
 
     modal.classList.remove("hidden");
 }
 
 
-// زر إرسال رسالة
+// الأزرار
 document.getElementById("sendOpen").addEventListener("click", () => {
     openModal("send");
 });
 
-
-// زر فك الشفرة
 document.getElementById("decodeOpen").addEventListener("click", () => {
     openModal("decode");
 });
 
 
-// إغلاق النافذة
+// إغلاق
 document.getElementById("closeModal").addEventListener("click", () => {
     modal.classList.add("hidden");
 });
 
 
-// إنشاء لوحة الأرقام
+// لوحة الأرقام
 const keypad = document.getElementById("keypad");
 
 for (let i = 1; i <= 9; i++) {
@@ -108,19 +103,14 @@ for (let i = 1; i <= 9; i++) {
 
 createKey(0);
 
-
 function createKey(number) {
-
     const button = document.createElement("button");
 
     button.type = "button";
     button.textContent = number;
 
     button.addEventListener("click", () => {
-
-        if (enteredCode.length >= 4) {
-            return;
-        }
+        if (enteredCode.length >= 4) return;
 
         enteredCode += number;
 
@@ -136,23 +126,19 @@ function createKey(number) {
 }
 
 
-// زر مسح الرمز
+// مسح الرمز
 document.getElementById("clearCode").addEventListener("click", () => {
-
     enteredCode = "";
     codeDisplay.textContent = "";
-
 });
 
 
 // التحقق من الرمز
 function checkCode() {
-
     const correctCode =
         mode === "send" ? "1889" : "1900";
 
     if (enteredCode !== correctCode) {
-
         alert("الرمز غير صحيح");
 
         enteredCode = "";
@@ -164,44 +150,28 @@ function checkCode() {
     codeStep.classList.add("hidden");
 
     if (mode === "send") {
-
         sendStep.classList.remove("hidden");
-
     } else {
-
         decodeStep.classList.remove("hidden");
-
     }
 }
 
 
-// تحويل عربي إلى أرقام
+// عربي → أرقام
 function encodeMessage(text) {
-
     let result = "";
 
     for (const character of text) {
-
-        if (alphabet[character]) {
-
-            result += alphabet[character];
-
-        } else {
-
-            result += "??";
-
-        }
+        result += alphabet[character] ?? "??";
     }
 
     return result;
 }
 
 
-// تحويل أرقام إلى عربي
+// أرقام → عربي
 function decodeMessage(numbers) {
-
-    const cleanNumbers =
-        numbers.replace(/\s/g, "");
+    const cleanNumbers = numbers.replace(/\s/g, "");
 
     if (!cleanNumbers) {
         return "أدخل أرقام أولاً.";
@@ -217,17 +187,10 @@ function decodeMessage(numbers) {
 
     let result = "";
 
-    for (
-        let i = 0;
-        i < cleanNumbers.length;
-        i += 2
-    ) {
+    for (let i = 0; i < cleanNumbers.length; i += 2) {
+        const pair = cleanNumbers.substring(i, i + 2);
 
-        const pair =
-            cleanNumbers.substring(i, i + 2);
-
-        result +=
-            reverseAlphabet[pair] || "؟";
+        result += reverseAlphabet[pair] || "؟";
     }
 
     return result;
@@ -237,80 +200,50 @@ function decodeMessage(numbers) {
 // إرسال الرسالة
 document.getElementById("sendBtn").addEventListener("click", () => {
 
-    if (cooldownRunning) {
-        return;
-    }
+    if (cooldownRunning) return;
 
-    const input =
-        document.getElementById("messageInput");
-
-    const message =
-        input.value.trim();
+    const input = document.getElementById("messageInput");
+    const message = input.value.trim();
 
     if (!message) {
-
         alert("اكتب الرسالة أولاً.");
-
         return;
     }
 
-    const encoded =
-        encodeMessage(message);
+    const encoded = encodeMessage(message);
 
-    const messages =
-        document.getElementById("messages");
-
-    const empty =
-        messages.querySelector(".empty");
+    const messages = document.getElementById("messages");
+    const empty = messages.querySelector(".empty");
 
     if (empty) {
         empty.remove();
     }
 
-
-    const messageBox =
-        document.createElement("div");
-
+    const messageBox = document.createElement("div");
     messageBox.className = "message";
 
-
-    const numbers =
-        document.createElement("div");
-
+    const numbers = document.createElement("div");
     numbers.textContent = encoded;
 
-
-    const copyButton =
-        document.createElement("button");
-
+    const copyButton = document.createElement("button");
     copyButton.className = "copy";
     copyButton.type = "button";
     copyButton.textContent = "نسخ الأرقام";
 
-
     copyButton.addEventListener("click", async () => {
-
         try {
-
             await navigator.clipboard.writeText(encoded);
 
-            copyButton.textContent =
-                "تم النسخ ✓";
+            copyButton.textContent = "تم النسخ ✓";
 
             setTimeout(() => {
-
-                copyButton.textContent =
-                    "نسخ الأرقام";
-
+                copyButton.textContent = "نسخ الأرقام";
             }, 1500);
 
         } catch {
-
             alert("تعذر نسخ الأرقام.");
-
         }
     });
-
 
     messageBox.appendChild(numbers);
     messageBox.appendChild(copyButton);
@@ -320,24 +253,21 @@ document.getElementById("sendBtn").addEventListener("click", () => {
     input.value = "";
 
 
-    // الانتظار 20 ثانية
+    // انتظار 20 ثانية
     cooldownRunning = true;
 
-    const cooldown =
-        document.getElementById("cooldown");
+    const cooldown = document.getElementById("cooldown");
 
     let remaining = 20;
 
     cooldown.textContent =
         `انتظر ${remaining} ثانية قبل إرسال رسالة أخرى`;
 
-
     const interval = setInterval(() => {
 
         remaining--;
 
         if (remaining <= 0) {
-
             clearInterval(interval);
 
             cooldownRunning = false;
@@ -346,14 +276,11 @@ document.getElementById("sendBtn").addEventListener("click", () => {
                 "يمكنك إرسال رسالة جديدة.";
 
         } else {
-
             cooldown.textContent =
                 `انتظر ${remaining} ثانية قبل إرسال رسالة أخرى`;
-
         }
 
     }, 1000);
-
 });
 
 
