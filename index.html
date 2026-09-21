@@ -4,10 +4,7 @@
 <head>
   <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <title>Emden Pager</title>
 
@@ -16,10 +13,7 @@
 
 <body>
 
-  <!-- =========================
-       رسالة التوعية
-  ========================== -->
-
+  <!-- رسالة التوعية -->
   <section id="warning" class="warning">
 
     <div class="card">
@@ -28,7 +22,8 @@
 
       <p>
         هذا الموقع مخصص للعبة داخل ماب Emden في Roblox.
-        جميع الرسائل والشفرات جزء من تجربة اللعب.
+        عدم استخدام مصطلحات خارج إطار اللعبة،
+        وجميع الرسائل والشفرات جزء من تجربة اللعب.
       </p>
 
       <button id="agreeBtn" disabled>
@@ -40,24 +35,17 @@
   </section>
 
 
-  <!-- =========================
-       التطبيق
-  ========================== -->
-
+  <!-- التطبيق -->
   <main id="app" class="hidden">
 
     <header>
 
       <div>
-
         <small>EMDEN</small>
 
         <h1>Pager</h1>
 
-        <p>
-          نظام الرسائل وفك الشفرات
-        </p>
-
+        <p>نظام الرسائل وفك الشفرات</p>
       </div>
 
       <span class="online">
@@ -68,7 +56,6 @@
 
 
     <!-- البيجر -->
-
     <section class="pager">
 
       <div class="pager-head">
@@ -76,12 +63,9 @@
         <span>▮▮▮</span>
       </div>
 
-
       <div class="screen">
 
-        <small>
-          الرسائل
-        </small>
+        <small>الرسائل</small>
 
         <div id="messages">
 
@@ -93,33 +77,23 @@
 
       </div>
 
-
       <div class="pager-foot">
 
-        <span>
-          READY
-        </span>
+        <span>READY</span>
 
-        <span>
-          01
-        </span>
+        <span>01</span>
 
       </div>
 
     </section>
 
 
-    <!-- =========================
-         الأزرار
-    ========================== -->
-
+    <!-- الأزرار -->
     <section class="actions">
 
       <button id="sendOpen">
 
-        <b>
-          ✉ إرسال رسالة
-        </b>
+        <b>✉ إرسال رسالة</b>
 
         <small>
           رمز الدخول: ••••
@@ -130,9 +104,7 @@
 
       <button id="decodeOpen">
 
-        <b>
-          ⌕ فك الشفرة
-        </b>
+        <b>⌕ فك الشفرة</b>
 
         <small>
           رمز الدخول: ••••
@@ -141,215 +113,4 @@
       </button>
 
 
-      <button id="ps5Open">
-
-        <b>
-          🎮 نظام PS5
-        </b>
-
-        <small>
-          نظام مخصص للـ PS5
-        </small>
-
-      </button>
-
-    </section>
-
-
-    <!-- عداد الإرسال -->
-
-    <p id="cooldown"></p>
-
-  </main>
-
-
-  <!-- =========================
-       النافذة
-  ========================== -->
-
-  <div id="modal" class="modal hidden">
-
-    <div class="modal-card">
-
-      <button
-        id="closeModal"
-        class="close"
-        type="button"
-      >
-        ×
-      </button>
-
-
-      <h2 id="modalTitle"></h2>
-
-
-      <!-- =====================
-           إدخال الرمز
-      ====================== -->
-
-      <div id="codeStep">
-
-        <p id="codeText">
-          أدخل رمز الدخول من لوحة الأرقام
-        </p>
-
-        <div
-          id="codeDisplay"
-          class="code-display"
-        ></div>
-
-        <div
-          id="keypad"
-          class="keypad"
-        ></div>
-
-        <button
-          id="clearCode"
-          class="clear"
-          type="button"
-        >
-          مسح
-        </button>
-
-      </div>
-
-
-      <!-- =====================
-           إرسال عادي
-      ====================== -->
-
-      <div
-        id="sendStep"
-        class="hidden"
-      >
-
-        <label>
-          اكتب الرسالة بالعربي
-        </label>
-
-        <textarea
-          id="messageInput"
-          rows="4"
-          placeholder="اكتب رسالتك هنا..."
-        ></textarea>
-
-        <button
-          id="sendBtn"
-          class="main"
-          type="button"
-        >
-          إرسال
-        </button>
-
-      </div>
-
-
-      <!-- =====================
-           فك الشفرة
-      ====================== -->
-
-      <div
-        id="decodeStep"
-        class="hidden"
-      >
-
-        <label>
-          أدخل أرقام البيجر
-        </label>
-
-        <textarea
-          id="numberInput"
-          rows="4"
-          inputmode="numeric"
-          placeholder="مثال: 122701..."
-        ></textarea>
-
-        <button
-          id="decodeBtn"
-          class="main"
-          type="button"
-        >
-          فك الشفرة
-        </button>
-
-        <div class="result">
-
-          النص الأصلي:
-
-          <strong id="decodeResult">
-            —
-          </strong>
-
-        </div>
-
-      </div>
-
-
-      <!-- =====================
-           PS5
-      ====================== -->
-
-      <div
-        id="ps5Step"
-        class="hidden"
-      >
-
-        <label>
-          اكتب الرسالة بالعربي
-        </label>
-
-        <textarea
-          id="ps5MessageInput"
-          rows="4"
-          placeholder="اكتب رسالتك هنا..."
-        ></textarea>
-
-        <button
-          id="ps5SendBtn"
-          class="main"
-          type="button"
-        >
-          إرسال
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================
-       Footer
-  ========================== -->
-
-  <footer>
-    Emden Pager • Roblox Roleplay
-  </footer>
-
-
-  <!-- =========================
-       Supabase
-  ========================== -->
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-
-  <!-- =========================
-       اختبار JavaScript
-  ========================== -->
-
-  <script>
-    alert("JavaScript يعمل");
-  </script>
-
-
-  <!-- =========================
-       ملف JavaScript الرئيسي
-  ========================== -->
-
-  <script src="script.js"></script>
-
-</body>
-
-</html>
+      <button id
