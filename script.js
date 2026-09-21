@@ -1,50 +1,13 @@
 "use strict";
 
-/* =========================================================
+/* =========================
    EMDEN PAGER
-   الجوال + PS5
-   الإرسال والحفظ عبر Supabase Database
-   ========================================================= */
-
-
-/* =========================================================
-   العناصر
-   ========================================================= */
-
-var warning = document.getElementById("warning");
-var agreeBtn = document.getElementById("agreeBtn");
-var timerEl = document.getElementById("timer");
-
-var modal = document.getElementById("modal");
-var modalTitle = document.getElementById("modalTitle");
-
-var codeStep = document.getElementById("codeStep");
-var sendStep = document.getElementById("sendStep");
-var decodeStep = document.getElementById("decodeStep");
-
-var codeDisplay = document.getElementById("codeDisplay");
-var keypad = document.getElementById("keypad");
-
-var enteredCode = "";
-var mode = "";
-
-var cooldownRunning = false;
-
-
-/* =========================================================
-   الأكواد
-   ========================================================= */
+========================= */
 
 var NORMAL_SEND_CODE = "1889";
 var NORMAL_DECODE_CODE = "1900";
-
 var PS5_CODE = "5576";
 var PS5_DECODE_CODE = "5567";
-
-
-/* =========================================================
-   SUPABASE
-   ========================================================= */
 
 var SUPABASE_URL =
     "https://hmwnhwfjffkxmufripok.supabase.co";
@@ -52,16 +15,41 @@ var SUPABASE_URL =
 var SUPABASE_KEY =
     "sb_publishable_YdLIkiNahtrG0AFSX7iVVA__nYrwICs";
 
+
+/* =========================
+   العناصر
+========================= */
+
+var warning = document.getElementById("warning");
+var agreeBtn = document.getElementById("agreeBtn");
+var timerEl = document.getElementById("timer");
+
+var app = document.getElementById("app");
+
+var modal = document.getElementById("modal");
+var modalTitle = document.getElementById("modalTitle");
+
+var codeStep = document.getElementById("codeStep");
+var sendStep = document.getElementById("sendStep");
+var decodeStep = document.getElementById("decodeStep");
+var ps5Step = document.getElementById("ps5Step");
+
+var codeDisplay = document.getElementById("codeDisplay");
+var keypad = document.getElementById("keypad");
+
+var enteredCode = "";
+var mode = "";
+var selectedPS5Message = "";
+
+var cooldownRunning = false;
+
+
+/* =========================
+   Supabase
+========================= */
+
 var supabaseClient = null;
-
 var realtimeChannel = null;
-
-var supabaseReady = false;
-
-
-/* =========================================================
-   تشغيل Supabase
-   ========================================================= */
 
 try {
 
@@ -76,492 +64,71 @@ try {
                 SUPABASE_KEY
             );
 
-        supabaseReady = true;
-
-        console.log(
-            "Supabase: جاهز"
-        );
-
-    } else {
-
-        console.log(
-            "Supabase غير متاح"
-        );
+        console.log("Supabase جاهز");
 
     }
 
 } catch (error) {
 
-    console.log(
-        "Supabase Error:",
-        error
-    );
+    console.log("Supabase Error:", error);
 
 }
 
 
-/* =========================================================
-   إخفاء رموز الدخول
-   ========================================================= */
-
-var actionSmall =
-    document.querySelectorAll(
-        ".actions small"
-    );
-
-for (
-    var a = 0;
-    a < actionSmall.length;
-    a++
-) {
-
-    actionSmall[a].textContent =
-        "رمز الدخول: ••••";
-
-}
-
-
-/* =========================================================
-   عداد الموافقة
-   ========================================================= */
+/* =========================
+   عداد الـ 5 ثواني
+========================= */
 
 var seconds = 5;
 
-var countdown =
-    setInterval(
-        function () {
+if (agreeBtn) {
 
-            seconds--;
+    agreeBtn.disabled = true;
 
-            if (seconds <= 0) {
+    var countdown = setInterval(function () {
 
-                clearInterval(
-                    countdown
-                );
+        seconds--;
 
-                agreeBtn.disabled = false;
+        if (seconds <= 0) {
 
-                agreeBtn.style.pointerEvents =
-                    "auto";
+            clearInterval(countdown);
 
-                agreeBtn.style.opacity =
-                    "1";
+            agreeBtn.disabled = false;
 
-                timerEl.textContent =
-                    "";
+            agreeBtn.style.pointerEvents = "auto";
+            agreeBtn.style.opacity = "1";
 
-            } else {
-
-                timerEl.textContent =
-                    seconds;
-
+            if (timerEl) {
+                timerEl.textContent = "";
             }
 
-        },
-        1000
-    );
+        } else {
+
+            if (timerEl) {
+                timerEl.textContent = seconds;
+            }
+
+        }
+
+    }, 1000);
 
 
-/* =========================================================
-   موافق
-   ========================================================= */
+    agreeBtn.addEventListener("click", function () {
 
-agreeBtn.addEventListener(
-    "click",
-    function () {
-
-        warning.classList.add(
-            "hidden"
-        );
-
-        document
-            .getElementById("app")
-            .classList.remove(
-                "hidden"
-            );
+        warning.classList.add("hidden");
+        app.classList.remove("hidden");
 
         loadMessages();
-
         startRealtime();
 
-    }
-);
-
-
-/* =========================================================
-   فتح النافذة
-   ========================================================= */
-
-function openModal(type) {
-
-    mode = type;
-
-    enteredCode = "";
-
-    codeDisplay.textContent = "";
-
-    codeStep.classList.remove(
-        "hidden"
-    );
-
-    sendStep.classList.add(
-        "hidden"
-    );
-
-    decodeStep.classList.add(
-        "hidden"
-    );
-
-
-    if (type === "send") {
-
-        modalTitle.textContent =
-            "إرسال رسالة";
-
-    }
-
-    else if (type === "decode") {
-
-        modalTitle.textContent =
-            "فك الشفرة";
-
-    }
-
-    else if (type === "ps5") {
-
-        modalTitle.textContent =
-            "🎮 نظام PS5";
-
-    }
-
-    else if (type === "ps5Decode") {
-
-        modalTitle.textContent =
-            "🎮 فك شفرة PS5";
-
-    }
-
-
-    modal.classList.remove(
-        "hidden"
-    );
+    });
 
 }
 
 
-/* =========================================================
-   زر الإرسال العادي
-   ========================================================= */
-
-var sendOpen =
-    document.getElementById(
-        "sendOpen"
-    );
-
-if (sendOpen) {
-
-    sendOpen.addEventListener(
-        "click",
-        function () {
-
-            openModal("send");
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   زر فك الشفرة العادي
-   ========================================================= */
-
-var decodeOpen =
-    document.getElementById(
-        "decodeOpen"
-    );
-
-if (decodeOpen) {
-
-    decodeOpen.addEventListener(
-        "click",
-        function () {
-
-            openModal("decode");
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   زر PS5
-   ========================================================= */
-
-var ps5Open =
-    document.getElementById(
-        "ps5Open"
-    );
-
-if (ps5Open) {
-
-    ps5Open.addEventListener(
-        "click",
-        function () {
-
-            openModal("ps5");
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   إغلاق النافذة
-   ========================================================= */
-
-document
-    .getElementById("closeModal")
-    .addEventListener(
-        "click",
-        function () {
-
-            modal.classList.add(
-                "hidden"
-            );
-
-        }
-    );
-
-
-/* =========================================================
-   لوحة الأرقام
-   ========================================================= */
-
-function createKey(number) {
-
-    var button =
-        document.createElement(
-            "button"
-        );
-
-    button.type = "button";
-
-    button.textContent =
-        number;
-
-    button.addEventListener(
-        "click",
-        function () {
-
-            if (
-                enteredCode.length >= 4
-            ) {
-
-                return;
-
-            }
-
-            enteredCode +=
-                String(number);
-
-            codeDisplay.textContent =
-                "•".repeat(
-                    enteredCode.length
-                );
-
-
-            if (
-                enteredCode.length === 4
-            ) {
-
-                checkCode();
-
-            }
-
-        }
-    );
-
-    keypad.appendChild(
-        button
-    );
-
-}
-
-
-/* =========================================================
-   إنشاء لوحة الأرقام
-   ========================================================= */
-
-for (
-    var k = 1;
-    k <= 9;
-    k++
-) {
-
-    createKey(k);
-
-}
-
-createKey(0);
-
-
-/* =========================================================
-   مسح الرمز
-   ========================================================= */
-
-document
-    .getElementById("clearCode")
-    .addEventListener(
-        "click",
-        function () {
-
-            enteredCode = "";
-
-            codeDisplay.textContent =
-                "";
-
-        }
-    );
-
-
-/* =========================================================
-   التحقق من الرمز
-   ========================================================= */
-
-function checkCode() {
-
-    var correctCode = "";
-
-
-    if (mode === "send") {
-
-        correctCode =
-            NORMAL_SEND_CODE;
-
-    }
-
-    else if (mode === "decode") {
-
-        correctCode =
-            NORMAL_DECODE_CODE;
-
-    }
-
-    else if (mode === "ps5") {
-
-        correctCode =
-            PS5_CODE;
-
-    }
-
-    else if (mode === "ps5Decode") {
-
-        correctCode =
-            PS5_DECODE_CODE;
-
-    }
-
-
-    if (
-        enteredCode !== correctCode
-    ) {
-
-        alert(
-            "الرمز غير صحيح"
-        );
-
-        enteredCode = "";
-
-        codeDisplay.textContent =
-            "";
-
-        return;
-
-    }
-
-
-    codeStep.classList.add(
-        "hidden"
-    );
-
-
-    /* إرسال عادي */
-
-    if (mode === "send") {
-
-        sendStep.classList.remove(
-            "hidden"
-        );
-
-    }
-
-
-    /* فك عادي */
-
-    else if (mode === "decode") {
-
-        decodeStep.classList.remove(
-            "hidden"
-        );
-
-    }
-
-
-    /* PS5 */
-
-    else if (mode === "ps5") {
-
-        sendPS5Step();
-
-    }
-
-
-    /* فك PS5 */
-
-    else if (mode === "ps5Decode") {
-
-        decodeStep.classList.remove(
-            "hidden"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   فتح إرسال PS5 بدون كود إرسال إضافي
-   ========================================================= */
-
-function sendPS5Step() {
-
-    var input =
-        document.getElementById(
-            "messageInput"
-        );
-
-    if (input) {
-
-        input.value = "";
-
-    }
-
-    sendStep.classList.remove(
-        "hidden"
-    );
-
-    modalTitle.textContent =
-        "🎮 إرسال رسالة PS5";
-
-}
-
-
-/* =========================================================
+/* =========================
    الترميز
-   ========================================================= */
+========================= */
 
 var alphabet = {
 
@@ -602,50 +169,30 @@ var alphabet = {
 
 };
 
-
 var reverseAlphabet = {};
 
-Object.keys(alphabet).forEach(
-    function (letter) {
+Object.keys(alphabet).forEach(function (letter) {
 
-        reverseAlphabet[
-            alphabet[letter]
-        ] = letter;
+    reverseAlphabet[alphabet[letter]] = letter;
 
-    }
-);
+});
 
-
-/* =========================================================
-   عربي → أرقام
-   ========================================================= */
 
 function encodeMessage(text) {
 
     var result = "";
 
-    for (
-        var i = 0;
-        i < text.length;
-        i++
-    ) {
+    for (var i = 0; i < text.length; i++) {
 
-        var character =
-            text.charAt(i);
+        var char = text.charAt(i);
 
-        if (
-            alphabet[character]
-        ) {
+        if (alphabet[char]) {
 
-            result +=
-                alphabet[character];
+            result += alphabet[char];
 
-        }
+        } else {
 
-        else {
-
-            result +=
-                "??";
+            result += "??";
 
         }
 
@@ -655,103 +202,473 @@ function encodeMessage(text) {
 
 }
 
-
-/* =========================================================
-   أرقام → عربي
-   ========================================================= */
 
 function decodeMessage(numbers) {
 
-    var cleanNumbers =
-        numbers.replace(
-            /\s/g,
-            ""
-        );
+    var clean = String(numbers || "")
+        .replace(/\s/g, "");
 
-
-    if (!cleanNumbers) {
-
+    if (!clean) {
         return "أدخل أرقام أولاً.";
-
     }
 
-
-    if (
-        !/^\d+$/.test(
-            cleanNumbers
-        )
-    ) {
-
+    if (!/^\d+$/.test(clean)) {
         return "أدخل أرقام فقط.";
-
     }
 
-
-    if (
-        cleanNumbers.length % 2 !== 0
-    ) {
-
+    if (clean.length % 2 !== 0) {
         return "الشفرة غير مكتملة.";
-
     }
-
 
     var result = "";
 
+    for (var i = 0; i < clean.length; i += 2) {
 
-    for (
-        var i = 0;
-        i < cleanNumbers.length;
-        i += 2
-    ) {
+        var pair = clean.substring(i, i + 2);
 
-        var pair =
-            cleanNumbers.substring(
-                i,
-                i + 2
-            );
-
-
-        if (
-            reverseAlphabet[pair]
-        ) {
-
-            result +=
-                reverseAlphabet[pair];
-
-        }
-
-        else {
-
-            result +=
-                "؟";
-
-        }
+        result += reverseAlphabet[pair] || "؟";
 
     }
-
 
     return result;
 
 }
 
 
-/* =========================================================
-   تحميل الرسائل الموجودة في Supabase
-   ========================================================= */
+/* =========================
+   فتح النافذة
+========================= */
 
-async function loadMessages() {
+function openModal(type) {
 
-    if (!supabaseReady) {
+    mode = type;
+    enteredCode = "";
 
-        console.log(
-            "Supabase غير جاهز"
-        );
+    codeDisplay.textContent = "";
+
+    codeStep.classList.remove("hidden");
+    sendStep.classList.add("hidden");
+    decodeStep.classList.add("hidden");
+    ps5Step.classList.add("hidden");
+
+    if (type === "send") {
+
+        modalTitle.textContent = "إرسال رسالة";
+
+    } else if (type === "decode") {
+
+        modalTitle.textContent = "فك الشفرة";
+
+    } else if (type === "ps5") {
+
+        modalTitle.textContent = "🎮 نظام PS5";
+
+    }
+
+    modal.classList.remove("hidden");
+
+}
+
+
+/* =========================
+   الأزرار الرئيسية
+========================= */
+
+var sendOpen = document.getElementById("sendOpen");
+
+if (sendOpen) {
+
+    sendOpen.addEventListener("click", function () {
+
+        openModal("send");
+
+    });
+
+}
+
+
+var decodeOpen = document.getElementById("decodeOpen");
+
+if (decodeOpen) {
+
+    decodeOpen.addEventListener("click", function () {
+
+        openModal("decode");
+
+    });
+
+}
+
+
+var ps5Open = document.getElementById("ps5Open");
+
+if (ps5Open) {
+
+    ps5Open.addEventListener("click", function () {
+
+        openModal("ps5");
+
+    });
+
+}
+
+
+/* =========================
+   إغلاق
+========================= */
+
+var closeModal = document.getElementById("closeModal");
+
+if (closeModal) {
+
+    closeModal.addEventListener("click", function () {
+
+        modal.classList.add("hidden");
+
+    });
+
+}
+
+
+/* =========================
+   لوحة الأرقام
+========================= */
+
+function createKey(number) {
+
+    var button = document.createElement("button");
+
+    button.type = "button";
+    button.textContent = number;
+
+    button.addEventListener("click", function () {
+
+        if (enteredCode.length >= 4) {
+            return;
+        }
+
+        enteredCode += String(number);
+
+        codeDisplay.textContent =
+            "•".repeat(enteredCode.length);
+
+        if (enteredCode.length === 4) {
+
+            checkCode();
+
+        }
+
+    });
+
+    keypad.appendChild(button);
+
+}
+
+
+for (var k = 1; k <= 9; k++) {
+
+    createKey(k);
+
+}
+
+createKey(0);
+
+
+/* =========================
+   مسح الرمز
+========================= */
+
+document.getElementById("clearCode")
+    .addEventListener("click", function () {
+
+        enteredCode = "";
+        codeDisplay.textContent = "";
+
+    });
+
+
+/* =========================
+   التحقق من الرموز
+========================= */
+
+function checkCode() {
+
+    var correctCode = "";
+
+    if (mode === "send") {
+
+        correctCode = NORMAL_SEND_CODE;
+
+    } else if (mode === "decode") {
+
+        correctCode = NORMAL_DECODE_CODE;
+
+    } else if (mode === "ps5") {
+
+        correctCode = PS5_CODE;
+
+    } else {
 
         return;
 
     }
 
+
+    if (enteredCode !== correctCode) {
+
+        alert("الرمز غير صحيح");
+
+        enteredCode = "";
+        codeDisplay.textContent = "";
+
+        return;
+
+    }
+
+
+    codeStep.classList.add("hidden");
+
+
+    if (mode === "send") {
+
+        sendStep.classList.remove("hidden");
+
+        modalTitle.textContent = "إرسال رسالة";
+
+    }
+
+
+    if (mode === "decode") {
+
+        decodeStep.classList.remove("hidden");
+
+        modalTitle.textContent = "فك الشفرة";
+
+    }
+
+
+    if (mode === "ps5") {
+
+        ps5Step.classList.remove("hidden");
+
+        modalTitle.textContent = "🎮 إرسال رسالة PS5";
+
+    }
+
+}
+
+
+/* =========================
+   إرسال عادي
+========================= */
+
+var sendBtn = document.getElementById("sendBtn");
+
+if (sendBtn) {
+
+    sendBtn.addEventListener("click", function () {
+
+        sendMessage(
+            document.getElementById("messageInput")
+        );
+
+    });
+
+}
+
+
+/* =========================
+   إرسال PS5
+========================= */
+
+var ps5SendBtn =
+    document.getElementById("ps5SendBtn");
+
+if (ps5SendBtn) {
+
+    ps5SendBtn.addEventListener("click", function () {
+
+        sendMessage(
+            document.getElementById("ps5MessageInput")
+        );
+
+    });
+
+}
+
+
+/* =========================
+   إرسال إلى Supabase
+========================= */
+
+async function sendMessage(input) {
+
+    if (cooldownRunning) {
+        return;
+    }
+
+    if (!supabaseClient) {
+
+        alert("الاتصال بالسيرفر غير جاهز.");
+
+        return;
+
+    }
+
+    if (!input) {
+
+        alert("حقل الرسالة غير موجود.");
+
+        return;
+
+    }
+
+    var message = input.value.trim();
+
+    if (!message) {
+
+        alert("اكتب الرسالة أولاً.");
+
+        return;
+
+    }
+
+    var encoded = encodeMessage(message);
+
+
+    try {
+
+        var result =
+            await supabaseClient
+                .from("messages")
+                .insert({
+                    encoded_text: encoded
+                })
+                .select()
+                .single();
+
+
+        if (result.error) {
+
+            console.log(
+                "Supabase Insert Error:",
+                result.error
+            );
+
+            alert(
+                "تعذر إرسال الرسالة."
+            );
+
+            return;
+
+        }
+
+
+        /*
+           نعرض الرسالة فورًا عند المرسل.
+        */
+
+        addMessageToPager(
+            encoded,
+            true
+        );
+
+
+        input.value = "";
+
+        startCooldown();
+
+
+        /*
+           إغلاق النافذة بعد الإرسال
+        */
+
+        modal.classList.add("hidden");
+
+
+    } catch (error) {
+
+        console.log(
+            "Send Error:",
+            error
+        );
+
+        alert(
+            "حدث خطأ أثناء الإرسال."
+        );
+
+    }
+
+}
+
+
+/* =========================
+   مؤقت الإرسال
+========================= */
+
+function startCooldown() {
+
+    cooldownRunning = true;
+
+    var cooldown =
+        document.getElementById("cooldown");
+
+    var remaining = 20;
+
+    if (cooldown) {
+
+        cooldown.textContent =
+            "انتظر " +
+            remaining +
+            " ثانية قبل إرسال رسالة أخرى";
+
+    }
+
+
+    var interval = setInterval(function () {
+
+        remaining--;
+
+        if (remaining <= 0) {
+
+            clearInterval(interval);
+
+            cooldownRunning = false;
+
+            if (cooldown) {
+
+                cooldown.textContent =
+                    "يمكنك إرسال رسالة جديدة.";
+
+            }
+
+        } else {
+
+            if (cooldown) {
+
+                cooldown.textContent =
+                    "انتظر " +
+                    remaining +
+                    " ثانية قبل إرسال رسالة أخرى";
+
+            }
+
+        }
+
+    }, 1000);
+
+}
+
+
+/* =========================
+   تحميل الرسائل
+========================= */
+
+async function loadMessages() {
+
+    if (!supabaseClient) {
+        return;
+    }
 
     try {
 
@@ -764,7 +681,7 @@ async function loadMessages() {
                 .order(
                     "created_at",
                     {
-                        ascending: false
+                        ascending: true
                     }
                 )
                 .limit(50);
@@ -773,7 +690,7 @@ async function loadMessages() {
         if (result.error) {
 
             console.log(
-                "خطأ تحميل الرسائل:",
+                "Load Error:",
                 result.error
             );
 
@@ -782,45 +699,42 @@ async function loadMessages() {
         }
 
 
-        var rows =
-            result.data || [];
+        var messages =
+            document.getElementById("messages");
+
+        messages.innerHTML = "";
 
 
-        clearMessages();
+        if (!result.data || result.data.length === 0) {
 
+            var empty =
+                document.createElement("div");
 
-        for (
-            var i = rows.length - 1;
-            i >= 0;
-            i--
-        ) {
+            empty.className = "empty";
+            empty.textContent =
+                "لا توجد رسائل حالياً";
 
-            if (
-                rows[i] &&
-                rows[i].encoded_text
-            ) {
+            messages.appendChild(empty);
 
-                addMessageToPager(
-                    rows[i].encoded_text,
-                    false
-                );
-
-            }
+            return;
 
         }
 
 
+        result.data.forEach(function (row) {
+
+            addMessageToPager(
+                row.encoded_text,
+                false
+            );
+
+        });
+
+
+    } catch (error) {
+
         console.log(
-            "تم تحميل الرسائل:",
-            rows.length
-        );
-
-    }
-
-    catch (error) {
-
-        console.log(
-            "Load messages error:",
+            "Load Error:",
             error
         );
 
@@ -829,215 +743,89 @@ async function loadMessages() {
 }
 
 
-/* =========================================================
-   تنظيف الرسائل قبل إعادة تحميلها
-   ========================================================= */
-
-function clearMessages() {
-
-    var messages =
-        document.getElementById(
-            "messages"
-        );
-
-    if (!messages) {
-
-        return;
-
-    }
-
-
-    messages.innerHTML = "";
-
-
-    var empty =
-        document.createElement(
-            "div"
-        );
-
-    empty.className =
-        "empty";
-
-    empty.textContent =
-        "لا توجد رسائل حالياً";
-
-    messages.appendChild(
-        empty
-    );
-
-}
-
-
-/* =========================================================
+/* =========================
    Realtime
-   ========================================================= */
+========================= */
 
 function startRealtime() {
 
-    if (!supabaseReady) {
-
+    if (!supabaseClient || realtimeChannel) {
         return;
-
     }
 
 
-    if (realtimeChannel) {
+    realtimeChannel =
+        supabaseClient
+            .channel("emden-messages")
+            .on(
+                "postgres_changes",
+                {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "messages"
+                },
+                function (payload) {
 
-        return;
+                    if (
+                        payload &&
+                        payload.new &&
+                        payload.new.encoded_text
+                    ) {
 
-    }
-
-
-    try {
-
-        realtimeChannel =
-            supabaseClient
-                .channel(
-                    "emden-messages-realtime"
-                )
-                .on(
-                    "postgres_changes",
-                    {
-                        event: "INSERT",
-                        schema: "public",
-                        table: "messages"
-                    },
-                    function (payload) {
-
-                        console.log(
-                            "رسالة جديدة:",
-                            payload
-                        );
-
-
-                        if (
-                            payload &&
-                            payload.new &&
-                            payload.new.encoded_text
-                        ) {
-
-                            addMessageToPager(
-                                payload.new.encoded_text,
-                                true
-                            );
-
-                        }
-
-                    }
-                )
-                .subscribe(
-                    function (status) {
-
-                        console.log(
-                            "Realtime:",
-                            status
+                        addMessageToPager(
+                            payload.new.encoded_text,
+                            true
                         );
 
                     }
+
+                }
+            )
+            .subscribe(function (status) {
+
+                console.log(
+                    "Realtime:",
+                    status
                 );
 
-    }
-
-    catch (error) {
-
-        console.log(
-            "Realtime error:",
-            error
-        );
-
-    }
+            });
 
 }
 
 
-/* =========================================================
-   إضافة رسالة للواجهة
-   ========================================================= */
+/* =========================
+   إضافة الرسالة
+========================= */
 
 function addMessageToPager(
     encoded,
-    scrollToMessage
+    scroll
 ) {
 
     var messages =
-        document.getElementById(
-            "messages"
-        );
-
+        document.getElementById("messages");
 
     if (!messages) {
-
         return;
-
     }
 
 
     var empty =
-        messages.querySelector(
-            ".empty"
-        );
-
+        messages.querySelector(".empty");
 
     if (empty) {
-
         empty.remove();
-
     }
 
 
-    /*
-       منع تكرار الرسالة
-       إذا كانت موجودة بالفعل
-    */
+    var box =
+        document.createElement("div");
 
-    var existing =
-        messages.querySelectorAll(
-            ".message"
-        );
+    box.className = "message";
 
-
-    for (
-        var i = 0;
-        i < existing.length;
-        i++
-    ) {
-
-        var numberElement =
-            existing[i].querySelector(
-                ".message-numbers"
-            );
-
-
-        if (
-            numberElement &&
-            numberElement.textContent === encoded
-        ) {
-
-            /*
-              لا نحذف الرسائل المتشابهة من قاعدة البيانات.
-              فقط نسمح بوجودها إذا كانت رسالة جديدة فعلًا.
-            */
-
-        }
-
-    }
-
-
-    var messageBox =
-        document.createElement(
-            "div"
-        );
-
-    messageBox.className =
-        "message";
-
-
-    /* الأرقام */
 
     var numbers =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     numbers.className =
         "message-numbers";
@@ -1046,58 +834,44 @@ function addMessageToPager(
         encoded;
 
 
-    /* زر النسخ */
+    /* نسخ */
 
-    var copyButton =
-        document.createElement(
-            "button"
-        );
+    var copy =
+        document.createElement("button");
 
-    copyButton.className =
-        "copy";
+    copy.className = "copy";
+    copy.type = "button";
+    copy.textContent = "نسخ الأرقام";
 
-    copyButton.type =
-        "button";
-
-    copyButton.textContent =
-        "نسخ الأرقام";
-
-
-    copyButton.addEventListener(
+    copy.addEventListener(
         "click",
         function () {
 
             copyText(
                 encoded,
-                copyButton
+                copy
             );
 
         }
     );
 
 
-    /* زر فك الشفرة PS5 */
+    /* فك الشفرة */
 
-    var ps5DecodeButton =
-        document.createElement(
-            "button"
-        );
+    var decode =
+        document.createElement("button");
 
-    ps5DecodeButton.className =
-        "copy";
-
-    ps5DecodeButton.type =
-        "button";
-
-    ps5DecodeButton.textContent =
+    decode.className = "copy";
+    decode.type = "button";
+    decode.textContent =
         "🎮 فك الشفرة";
 
 
-    ps5DecodeButton.addEventListener(
+    decode.addEventListener(
         "click",
         function () {
 
-            openPS5MessageDecode(
+            openMessageDecode(
                 encoded
             );
 
@@ -1105,141 +879,93 @@ function addMessageToPager(
     );
 
 
-    messageBox.appendChild(
-        numbers
-    );
-
-    messageBox.appendChild(
-        copyButton
-    );
-
-    messageBox.appendChild(
-        ps5DecodeButton
-    );
+    box.appendChild(numbers);
+    box.appendChild(copy);
+    box.appendChild(decode);
 
 
-    messages.prepend(
-        messageBox
-    );
+    messages.appendChild(box);
 
 
-    if (scrollToMessage) {
+    if (scroll) {
 
         try {
 
-            messageBox.scrollIntoView({
+            box.scrollIntoView({
                 behavior: "smooth",
                 block: "nearest"
             });
 
-        }
-
-        catch (error) {}
+        } catch (error) {}
 
     }
 
 }
 
 
-/* =========================================================
-   فك رسالة PS5 مباشرة
-   ========================================================= */
+/* =========================
+   فك شفرة رسالة
+========================= */
 
-function openPS5MessageDecode(encoded) {
+function openMessageDecode(encoded) {
 
-    mode =
-        "ps5Decode";
+    selectedPS5Message = encoded;
 
-    enteredCode =
-        "";
+    enteredCode = "";
 
-    codeDisplay.textContent =
-        "";
+    mode = "messageDecode";
 
-    codeStep.classList.remove(
-        "hidden"
-    );
+    codeDisplay.textContent = "";
 
-    sendStep.classList.add(
-        "hidden"
-    );
+    codeStep.classList.remove("hidden");
 
-    decodeStep.classList.add(
-        "hidden"
-    );
-
+    sendStep.classList.add("hidden");
+    decodeStep.classList.add("hidden");
+    ps5Step.classList.add("hidden");
 
     modalTitle.textContent =
         "🎮 فك شفرة الرسالة";
 
-
-    /*
-       نحفظ الرسالة التي ضغط عليها اللاعب
-       حتى نعرضها مباشرة بعد إدخال 5567
-    */
-
-    window.selectedPS5Message =
-        encoded;
-
-
-    modal.classList.remove(
-        "hidden"
-    );
+    modal.classList.remove("hidden");
 
 }
 
 
-/* =========================================================
-   بعد إدخال 5567
-   ========================================================= */
+/* =========================
+   تعديل checkCode لفك رسالة
+========================= */
 
-var originalCheckCode =
-    checkCode;
-
-
-/*
-   نعدل التحقق لفك رسالة PS5
-*/
+var oldCheckCode = checkCode;
 
 checkCode = function () {
 
-    if (
-        mode !== "ps5Decode"
-    ) {
+    if (mode !== "messageDecode") {
 
-        originalCheckCode();
+        oldCheckCode();
 
         return;
 
     }
 
 
-    if (
-        enteredCode !== PS5_DECODE_CODE
-    ) {
+    if (enteredCode !== PS5_DECODE_CODE) {
 
-        alert(
-            "الرمز غير صحيح"
-        );
+        alert("الرمز غير صحيح");
 
         enteredCode = "";
-
-        codeDisplay.textContent =
-            "";
+        codeDisplay.textContent = "";
 
         return;
 
     }
 
 
-    codeStep.classList.add(
-        "hidden"
-    );
+    codeStep.classList.add("hidden");
 
+    decodeStep.classList.remove("hidden");
 
-    decodeStep.classList.remove(
-        "hidden"
-    );
+    modalTitle.textContent =
+        "🎮 فك شفرة الرسالة";
 
 
     var numberInput =
@@ -1247,23 +973,133 @@ checkCode = function () {
             "numberInput"
         );
 
-
     var decodeResult =
         document.getElementById(
             "decodeResult"
         );
 
 
-    if (numberInput) {
+    numberInput.value =
+        selectedPS5Message;
 
-        numberInput.value =
-            window.selectedPS5Message || "";
+
+    decodeResult.textContent =
+        decodeMessage(
+            selectedPS5Message
+        );
+
+};
+
+
+/* =========================
+   فك الشفرة العادي
+========================= */
+
+var decodeBtn =
+    document.getElementById("decodeBtn");
+
+if (decodeBtn) {
+
+    decodeBtn.addEventListener(
+        "click",
+        function () {
+
+            var numbers =
+                document
+                    .getElementById("numberInput")
+                    .value
+                    .trim();
+
+
+            document
+                .getElementById("decodeResult")
+                .textContent =
+                    decodeMessage(numbers);
+
+        }
+    );
+
+}
+
+
+/* =========================
+   النسخ
+========================= */
+
+function copyText(text, button) {
+
+    if (
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+    ) {
+
+        navigator.clipboard
+            .writeText(text)
+            .then(function () {
+
+                button.textContent =
+                    "تم النسخ ✓";
+
+                setTimeout(function () {
+
+                    button.textContent =
+                        "نسخ الأرقام";
+
+                }, 1500);
+
+            })
+            .catch(function () {
+
+                oldCopy(text, button);
+
+            });
+
+    } else {
+
+        oldCopy(text, button);
 
     }
 
+}
 
-    if (decodeResult) {
 
-        decodeResult.textContent =
-            decodeMessage(
-            
+function oldCopy(text, button) {
+
+    var textarea =
+        document.createElement("textarea");
+
+    textarea.value = text;
+
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+
+    document.body.appendChild(textarea);
+
+    textarea.focus();
+    textarea.select();
+
+    try {
+
+        document.execCommand("copy");
+
+        button.textContent =
+            "تم النسخ ✓";
+
+    } catch (error) {
+
+        alert("انسخ الأرقام يدويًا.");
+
+    }
+
+    document.body.removeChild(textarea);
+
+}
+
+
+/* =========================
+   جاهز
+========================= */
+
+console.log(
+    "Emden Pager: Script loaded successfully"
+);
