@@ -2,12 +2,12 @@
 
 // ===============================
 // EMDEN PAGER
-// متوافق مع الجوال + PS5
+// الجوال + PS5
 // ===============================
 
 
 // ===============================
-// العناصر الأساسية
+// العناصر
 // ===============================
 
 var warning = document.getElementById("warning");
@@ -20,13 +20,26 @@ var modalTitle = document.getElementById("modalTitle");
 var codeStep = document.getElementById("codeStep");
 var sendStep = document.getElementById("sendStep");
 var decodeStep = document.getElementById("decodeStep");
+var ps5Step = document.getElementById("ps5Step");
 
 var codeDisplay = document.getElementById("codeDisplay");
 var keypad = document.getElementById("keypad");
 
 var enteredCode = "";
 var mode = "";
+
 var cooldownRunning = false;
+
+
+// ===============================
+// أكواد الدخول
+// ===============================
+
+var NORMAL_SEND_CODE = "1889";
+var NORMAL_DECODE_CODE = "1900";
+
+var PS5_CODE = "5576";
+var PS5_DECODE_CODE = "5567";
 
 
 // ===============================
@@ -44,7 +57,10 @@ var pagerChannel = null;
 var pagerConnected = false;
 
 
-// تشغيل Supabase بأمان
+// ===============================
+// تشغيل Supabase
+// ===============================
+
 try {
 
     if (
@@ -95,12 +111,6 @@ try {
 
             });
 
-    } else {
-
-        console.log(
-            "Supabase غير متاح"
-        );
-
     }
 
 } catch (error) {
@@ -114,7 +124,7 @@ try {
 
 
 // ===============================
-// إخفاء رموز الدخول
+// إخفاء الرموز من الأزرار
 // ===============================
 
 var actionSmall =
@@ -128,8 +138,12 @@ for (
     a++
 ) {
 
-    actionSmall[a].textContent =
-        "رمز الدخول: ••••";
+    if (a < 2) {
+
+        actionSmall[a].textContent =
+            "رمز الدخول: ••••";
+
+    }
 
 }
 
@@ -150,19 +164,14 @@ var countdown =
             clearInterval(countdown);
 
             agreeBtn.disabled = false;
-
-            agreeBtn.style.pointerEvents =
-                "auto";
-
-            agreeBtn.style.opacity =
-                "1";
+            agreeBtn.style.pointerEvents = "auto";
+            agreeBtn.style.opacity = "1";
 
             timerEl.textContent = "";
 
         } else {
 
-            timerEl.textContent =
-                seconds;
+            timerEl.textContent = seconds;
 
         }
 
@@ -170,32 +179,28 @@ var countdown =
 
 
 // ===============================
-// زر موافق
+// موافق
 // ===============================
 
 agreeBtn.addEventListener(
     "click",
     function () {
 
-        warning.classList.add(
-            "hidden"
-        );
+        warning.classList.add("hidden");
 
         document
             .getElementById("app")
-            .classList.remove(
-                "hidden"
-            );
+            .classList.remove("hidden");
 
     }
 );
 
 
 // ===============================
-// فتح النافذة
+// فتح النظام
 // ===============================
 
-function openModal(type) {
+function openModal(type, messageToDecode) {
 
     mode = type;
 
@@ -203,39 +208,56 @@ function openModal(type) {
 
     codeDisplay.textContent = "";
 
-    codeStep.classList.remove(
-        "hidden"
-    );
+    codeStep.classList.remove("hidden");
 
-    sendStep.classList.add(
-        "hidden"
-    );
+    sendStep.classList.add("hidden");
+    decodeStep.classList.add("hidden");
+    ps5Step.classList.add("hidden");
 
-    decodeStep.classList.add(
-        "hidden"
-    );
+    document.getElementById("codeText").textContent =
+        "أدخل رمز الدخول من لوحة الأرقام";
 
     if (type === "send") {
 
         modalTitle.textContent =
             "إرسال رسالة";
 
-    } else {
+    }
+
+    else if (type === "decode") {
 
         modalTitle.textContent =
             "فك الشفرة";
 
     }
 
-    modal.classList.remove(
-        "hidden"
-    );
+    else if (type === "ps5") {
+
+        modalTitle.textContent =
+            "🎮 نظام PS5";
+
+    }
+
+    else if (type === "ps5MessageDecode") {
+
+        modalTitle.textContent =
+            "🔓 فك شفرة الرسالة";
+
+        document.getElementById("codeText").textContent =
+            "أدخل رمز فك الشفرة";
+
+        window.ps5DecodeTarget =
+            messageToDecode || "";
+
+    }
+
+    modal.classList.remove("hidden");
 
 }
 
 
 // ===============================
-// زر إرسال رسالة
+// إرسال عادي
 // ===============================
 
 document
@@ -251,7 +273,7 @@ document
 
 
 // ===============================
-// زر فك الشفرة
+// فك الشفرة العادي
 // ===============================
 
 document
@@ -267,7 +289,23 @@ document
 
 
 // ===============================
-// إغلاق النافذة
+// نظام PS5
+// ===============================
+
+document
+    .getElementById("ps5Open")
+    .addEventListener(
+        "click",
+        function () {
+
+            openModal("ps5");
+
+        }
+    );
+
+
+// ===============================
+// إغلاق
 // ===============================
 
 document
@@ -276,9 +314,11 @@ document
         "click",
         function () {
 
-            modal.classList.add(
-                "hidden"
-            );
+            modal.classList.add("hidden");
+
+            enteredCode = "";
+
+            codeDisplay.textContent = "";
 
         }
     );
@@ -291,14 +331,11 @@ document
 function createKey(number) {
 
     var button =
-        document.createElement(
-            "button"
-        );
+        document.createElement("button");
 
     button.type = "button";
 
-    button.textContent =
-        number;
+    button.textContent = number;
 
     button.addEventListener(
         "click",
@@ -331,14 +368,11 @@ function createKey(number) {
         }
     );
 
-    keypad.appendChild(
-        button
-    );
+    keypad.appendChild(button);
 
 }
 
 
-// إنشاء الأرقام
 for (
     var k = 1;
     k <= 9;
@@ -353,7 +387,7 @@ createKey(0);
 
 
 // ===============================
-// مسح الرمز
+// مسح
 // ===============================
 
 document
@@ -364,63 +398,119 @@ document
 
             enteredCode = "";
 
-            codeDisplay.textContent =
-                "";
+            codeDisplay.textContent = "";
 
         }
     );
 
 
 // ===============================
-// التحقق من الرمز
+// التحقق من الأكواد
 // ===============================
 
 function checkCode() {
 
-    var correctCode;
+    var correctCode = "";
 
     if (mode === "send") {
 
-        correctCode = "1889";
-
-    } else {
-
-        correctCode = "1900";
+        correctCode =
+            NORMAL_SEND_CODE;
 
     }
+
+    else if (mode === "decode") {
+
+        correctCode =
+            NORMAL_DECODE_CODE;
+
+    }
+
+    else if (mode === "ps5") {
+
+        correctCode =
+            PS5_CODE;
+
+    }
+
+    else if (mode === "ps5MessageDecode") {
+
+        correctCode =
+            PS5_DECODE_CODE;
+
+    }
+
 
     if (
         enteredCode !== correctCode
     ) {
 
-        alert(
-            "الرمز غير صحيح"
-        );
+        alert("الرمز غير صحيح");
 
         enteredCode = "";
 
-        codeDisplay.textContent =
-            "";
+        codeDisplay.textContent = "";
 
         return;
 
     }
 
-    codeStep.classList.add(
-        "hidden"
-    );
+
+    // ===========================
+    // النظام العادي - إرسال
+    // ===========================
 
     if (mode === "send") {
 
-        sendStep.classList.remove(
-            "hidden"
+        codeStep.classList.add("hidden");
+
+        sendStep.classList.remove("hidden");
+
+    }
+
+
+    // ===========================
+    // النظام العادي - فك
+    // ===========================
+
+    else if (mode === "decode") {
+
+        codeStep.classList.add("hidden");
+
+        decodeStep.classList.remove("hidden");
+
+    }
+
+
+    // ===========================
+    // PS5
+    // ===========================
+
+    else if (mode === "ps5") {
+
+        codeStep.classList.add("hidden");
+
+        ps5Step.classList.remove("hidden");
+
+    }
+
+
+    // ===========================
+    // فك رسالة PS5
+    // ===========================
+
+    else if (mode === "ps5MessageDecode") {
+
+        var target =
+            window.ps5DecodeTarget || "";
+
+        modal.classList.add("hidden");
+
+        alert(
+            decodeMessage(target)
         );
 
-    } else {
-
-        decodeStep.classList.remove(
-            "hidden"
-        );
+        window.ps5DecodeTarget = "";
 
     }
 
@@ -428,7 +518,7 @@ function checkCode() {
 
 
 // ===============================
-// ترميز الحروف
+// الترميز
 // ===============================
 
 var alphabet = {
@@ -506,15 +596,11 @@ function encodeMessage(text) {
             text.charAt(i);
 
         if (
-            alphabet[
-                character
-            ]
+            alphabet[character]
         ) {
 
             result +=
-                alphabet[
-                    character
-                ];
+                alphabet[character];
 
         } else {
 
@@ -548,9 +634,7 @@ function decodeMessage(numbers) {
     }
 
     if (
-        !/^\d+$/.test(
-            cleanNumbers
-        )
+        !/^\d+$/.test(cleanNumbers)
     ) {
 
         return "أدخل أرقام فقط.";
@@ -600,7 +684,7 @@ function decodeMessage(numbers) {
 
 
 // ===============================
-// إضافة رسالة للبيجر
+// إضافة الرسالة
 // ===============================
 
 function addMessageToPager(encoded) {
@@ -621,26 +705,27 @@ function addMessageToPager(encoded) {
 
     }
 
+
     var messageBox =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     messageBox.className =
         "message";
 
+
     var numbers =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     numbers.textContent =
         encoded;
 
+
+    // ===========================
+    // زر النسخ
+    // ===========================
+
     var copyButton =
-        document.createElement(
-            "button"
-        );
+        document.createElement("button");
 
     copyButton.className =
         "copy";
@@ -665,28 +750,53 @@ function addMessageToPager(encoded) {
     );
 
 
-    messageBox.appendChild(
-        numbers
+    // ===========================
+    // زر فك الشفرة
+    // ===========================
+
+    var decodeButton =
+        document.createElement("button");
+
+    decodeButton.className =
+        "copy";
+
+    decodeButton.type =
+        "button";
+
+    decodeButton.textContent =
+        "🔓 فك الشفرة";
+
+
+    decodeButton.addEventListener(
+        "click",
+        function () {
+
+            openModal(
+                "ps5MessageDecode",
+                encoded
+            );
+
+        }
     );
 
-    messageBox.appendChild(
-        copyButton
-    );
 
-    messages.prepend(
-        messageBox
-    );
+    messageBox.appendChild(numbers);
+
+    messageBox.appendChild(copyButton);
+
+    messageBox.appendChild(decodeButton);
+
+    messages.prepend(messageBox);
 
 }
 
 
 // ===============================
-// نسخ الأرقام
+// النسخ
 // ===============================
 
 function copyText(text, button) {
 
-    // الجوال والمتصفحات الحديثة
     if (
         navigator.clipboard &&
         navigator.clipboard.writeText
@@ -720,9 +830,9 @@ function copyText(text, button) {
             });
 
         return;
+
     }
 
-    // PS5 والمتصفحات القديمة
     oldCopyMethod(
         text,
         button
@@ -732,7 +842,7 @@ function copyText(text, button) {
 
 
 // ===============================
-// طريقة النسخ القديمة
+// نسخ قديم
 // ===============================
 
 function oldCopyMethod(
@@ -797,7 +907,7 @@ function oldCopyMethod(
 
 
 // ===============================
-// إرسال الرسالة
+// إرسال النظام العادي
 // ===============================
 
 document
@@ -806,13 +916,37 @@ document
         "click",
         function () {
 
-            sendPagerMessage();
+            sendPagerMessage(
+                "messageInput"
+            );
 
         }
     );
 
 
-function sendPagerMessage() {
+// ===============================
+// إرسال PS5
+// ===============================
+
+document
+    .getElementById("ps5SendBtn")
+    .addEventListener(
+        "click",
+        function () {
+
+            sendPagerMessage(
+                "ps5MessageInput"
+            );
+
+        }
+    );
+
+
+// ===============================
+// إرسال الرسالة
+// ===============================
+
+function sendPagerMessage(inputId) {
 
     if (cooldownRunning) {
 
@@ -820,13 +954,15 @@ function sendPagerMessage() {
 
     }
 
+
     var input =
         document.getElementById(
-            "messageInput"
+            inputId
         );
 
     var message =
         input.value.trim();
+
 
     if (!message) {
 
@@ -837,6 +973,7 @@ function sendPagerMessage() {
         return;
 
     }
+
 
     if (
         !pagerConnected ||
@@ -851,16 +988,16 @@ function sendPagerMessage() {
 
     }
 
+
     var encoded =
-        encodeMessage(
-            message
-        );
+        encodeMessage(message);
 
 
     try {
 
         pagerChannel
             .send({
+
                 type: "broadcast",
 
                 event:
@@ -870,6 +1007,7 @@ function sendPagerMessage() {
                     encoded:
                         encoded
                 }
+
             })
             .then(
                 function (result) {
@@ -878,9 +1016,7 @@ function sendPagerMessage() {
                         result !== "ok"
                     ) {
 
-                        console.log(
-                            result
-                        );
+                        console.log(result);
 
                         alert(
                             "تعذر إرسال الرسالة."
@@ -890,8 +1026,8 @@ function sendPagerMessage() {
 
                     }
 
-                    input.value =
-                        "";
+
+                    input.value = "";
 
                     startCooldown();
 
@@ -900,9 +1036,7 @@ function sendPagerMessage() {
             .catch(
                 function (error) {
 
-                    console.log(
-                        error
-                    );
+                    console.log(error);
 
                     alert(
                         "حدث خطأ أثناء إرسال الرسالة."
@@ -913,9 +1047,7 @@ function sendPagerMessage() {
 
     } catch (error) {
 
-        console.log(
-            error
-        );
+        console.log(error);
 
         alert(
             "حدث خطأ أثناء إرسال الرسالة."
@@ -932,8 +1064,7 @@ function sendPagerMessage() {
 
 function startCooldown() {
 
-    cooldownRunning =
-        true;
+    cooldownRunning = true;
 
     var cooldown =
         document.getElementById(
@@ -958,12 +1089,9 @@ function startCooldown() {
                     remaining <= 0
                 ) {
 
-                    clearInterval(
-                        interval
-                    );
+                    clearInterval(interval);
 
-                    cooldownRunning =
-                        false;
+                    cooldownRunning = false;
 
                     cooldown.textContent =
                         "يمكنك إرسال رسالة جديدة.";
@@ -985,7 +1113,7 @@ function startCooldown() {
 
 
 // ===============================
-// فك الشفرة
+// فك الشفرة العادي
 // ===============================
 
 document
@@ -1000,9 +1128,7 @@ document
                 ).value.trim();
 
             var result =
-                decodeMessage(
-                    numbers
-                );
+                decodeMessage(numbers);
 
             document.getElementById(
                 "decodeResult"
