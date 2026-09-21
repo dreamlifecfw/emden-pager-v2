@@ -4,17 +4,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
 <title>Emden Pager</title>
-
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
-<!-- =========================
-     رسالة التوعية
-========================= -->
 
 <section id="warning" class="warning">
 
@@ -37,24 +31,14 @@
 </section>
 
 
-<!-- =========================
-     التطبيق
-========================= -->
-
 <main id="app" class="hidden">
 
   <header>
 
     <div>
-
       <small>EMDEN</small>
-
       <h1>Pager</h1>
-
-      <p>
-        نظام الرسائل وفك الشفرات
-      </p>
-
+      <p>نظام الرسائل وفك الشفرات</p>
     </div>
 
     <span class="online">
@@ -64,29 +48,16 @@
   </header>
 
 
-  <!-- =========================
-       البيجر
-  ========================= -->
-
   <section class="pager">
 
     <div class="pager-head">
-
       EMDEN PAGER
-
-      <span>
-        ▮▮▮
-      </span>
-
+      <span>▮▮▮</span>
     </div>
-
 
     <div class="screen">
 
-      <small>
-        الرسائل
-      </small>
-
+      <small>الرسائل</small>
 
       <div id="messages">
 
@@ -98,36 +69,19 @@
 
     </div>
 
-
     <div class="pager-foot">
-
-      <span>
-        READY
-      </span>
-
-      <span>
-        01
-      </span>
-
+      <span>READY</span>
+      <span>01</span>
     </div>
 
   </section>
 
 
-  <!-- =========================
-       الأزرار
-  ========================= -->
-
   <section class="actions">
-
-
-    <!-- إرسال عادي -->
 
     <button id="sendOpen">
 
-      <b>
-        ✉ إرسال رسالة
-      </b>
+      <b>✉ إرسال رسالة</b>
 
       <small>
         رمز الدخول: ••••
@@ -135,14 +89,10 @@
 
     </button>
 
-
-    <!-- فك عادي -->
 
     <button id="decodeOpen">
 
-      <b>
-        ⌕ فك الشفرة
-      </b>
+      <b>⌕ فك الشفرة</b>
 
       <small>
         رمز الدخول: ••••
@@ -151,20 +101,15 @@
     </button>
 
 
-    <!-- PS5 -->
-
     <button id="ps5Open">
 
-      <b>
-        🎮 نظام PS5
-      </b>
+      <b>🎮 نظام PS5</b>
 
       <small>
         نظام مخصص للـ PS5
       </small>
 
     </button>
-
 
   </section>
 
@@ -174,14 +119,9 @@
 </main>
 
 
-<!-- =========================
-     النافذة
-========================= -->
-
 <div id="modal" class="modal hidden">
 
   <div class="modal-card">
-
 
     <button
       id="closeModal"
@@ -195,28 +135,21 @@
     <h2 id="modalTitle"></h2>
 
 
-    <!-- =========================
-         إدخال الرمز
-    ========================= -->
-
     <div id="codeStep">
 
-      <p id="codeText">
+      <p>
         أدخل رمز الدخول من لوحة الأرقام
       </p>
-
 
       <div
         id="codeDisplay"
         class="code-display"
       ></div>
 
-
       <div
         id="keypad"
         class="keypad"
       ></div>
-
 
       <button
         id="clearCode"
@@ -229,10 +162,6 @@
     </div>
 
 
-    <!-- =========================
-         إرسال الرسالة
-    ========================= -->
-
     <div
       id="sendStep"
       class="hidden"
@@ -242,87 +171,8 @@
         اكتب الرسالة بالعربي
       </label>
 
-
       <textarea
         id="messageInput"
         rows="4"
         placeholder="اكتب رسالتك هنا..."
-      ></textarea>
-
-
-      <button
-        id="sendBtn"
-        class="main"
-        type="button"
-      >
-        إرسال
-      </button>
-
-    </div>
-
-
-    <!-- =========================
-         فك الشفرة
-    ========================= -->
-
-    <div
-      id="decodeStep"
-      class="hidden"
-    >
-
-      <label>
-        أرقام البيجر
-      </label>
-
-
-      <textarea
-        id="numberInput"
-        rows="4"
-        inputmode="numeric"
-        placeholder="مثال: 122701..."
-      ></textarea>
-
-
-      <button
-        id="decodeBtn"
-        class="main"
-        type="button"
-      >
-        فك الشفرة
-      </button>
-
-
-      <div class="result">
-
-        النص الأصلي:
-
-        <strong id="decodeResult">
-          —
-        </strong>
-
-      </div>
-
-    </div>
-
-
-  </div>
-
-</div>
-
-
-<!-- =========================
-     Supabase
-========================= -->
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-
-<!-- =========================
-     سكربت البيجر
-========================= -->
-
-<script src="script.js"></script>
-
-
-</body>
-</html>
+     
